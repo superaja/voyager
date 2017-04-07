@@ -7,6 +7,7 @@ import * as TetherComponent from 'react-tether';
 import {DraggableType, FieldParentType} from '../../constants';
 import {ShelfFieldDef} from '../../models';
 import {ShelfId} from '../../models/shelf';
+import {functionName} from '../../models/shelf/encoding';
 import * as styles from './field.scss';
 
 /**
@@ -83,6 +84,10 @@ class FieldBase extends React.PureComponent<FieldProps, FieldState> {
     const {connectDragSource, fieldDef, isPill, popupComponent} = this.props;
     const {field, title} = fieldDef;
     const isWildcardField = isWildcard(field) || this.props.isEnumeratedWildcardField;
+    const fnName = functionName(fieldDef);
+
+    /** Whether the fieldDef has a function that involves field. (Count doesn't involve a specific field.) */
+    const isFieldFn = fnName && fnName !== 'count';
 
     const component = (
       <span
@@ -90,8 +95,9 @@ class FieldBase extends React.PureComponent<FieldProps, FieldState> {
         onDoubleClick={this.onDoubleClick}
       >
         {this.caretTypeSpan()}
-        <span styleName="text" title={title}>
-          {title || field}
+        {this.funcSpan(fnName)}
+        <span styleName={isFieldFn ? 'fn-text' : 'text'}>
+          {title || (field !== '*' ? field : '')}
         </span>
         {this.addSpan()}
         {this.removeSpan()}
@@ -140,6 +146,14 @@ class FieldBase extends React.PureComponent<FieldProps, FieldState> {
     const onRemove = this.props.onRemove;
     return onRemove && (
       <span><a onClick={onRemove}><i className="fa fa-times"/></a></span>
+    );
+  }
+
+  private funcSpan(fnName: string) {
+    return (
+      <span styleName="func" title={fnName}>
+        {fnName}
+      </span>
     );
   }
 
