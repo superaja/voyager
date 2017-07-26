@@ -41,18 +41,30 @@ export const selectMainSpec = createSelector(
   }
 );
 
-export const selectMainPlotList = createSelector(
-  selectIsQuerySpecific, selectData, selectFilters, selectMainResult,
-  (
-    isQuerySpecific: boolean,
-    data: Data,
-    filters: Array<RangeFilter|OneOfFilter>,
-    mainResult: Result
-  ): PlotObject[] => {
-    if (isQuerySpecific || !mainResult.modelGroup) {
-      return undefined;
+export const selectPlotList: {
+  [k in ResultType]?: Selector<StateWithHistory<StateBase>, PlotObject[]>
+} = RESULT_TYPES.reduce((selectors, resultType) => {
+  selectors[resultType] = createSelector(
+    selectIsQuerySpecific,
+    selectData,
+    selectFilters,
+    selectResult[resultType],
+    (
+      isQuerySpecific: boolean,
+      data: Data,
+      filters: Array<RangeFilter|OneOfFilter>,
+      result: Result,
+    ) => {
+      if (
+          // For main, do not return list if specific.  For others, do not return list if not specific.
+          ((resultType === 'main') === isQuerySpecific) ||
+          !result.modelGroup
+        ) {
+        return undefined;
+      }
+      // FIXME(https://github.com/vega/voyager/issues/448): use data and filter
+      return extractPlotObjects(result.modelGroup);
     }
-    // FIXME(https://github.com/vega/voyager/issues/448): use data and filter
-    return extractPlotObjects(mainResult.modelGroup);
-  }
-);
+  );
+  return selectors;
+}, {});
