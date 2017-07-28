@@ -9,21 +9,27 @@ import {State, StateBase} from '../models/index';
 
 import {getTopSpecQueryItem} from 'compassql/build/src/model';
 import {createSelector} from 'reselect';
+import {Selector} from 'reselect/src/reselect';
 import {Data} from 'vega-lite/build/src/data';
 import {OneOfFilter, RangeFilter} from 'vega-lite/build/src/filter';
 import {extractPlotObjects, PlotObject} from '../models/plot';
-import {Result} from '../models/result';
+import {Result, RESULT_TYPES, ResultType} from '../models/result';
 import {getTransforms} from '../models/shelf/spec';
 import {selectData} from './dataset';
 import {selectFilters, selectIsQuerySpecific} from './shelf';
 
-const selectMainResult = (state: State) => state.present.result.main;
+export const selectResult: {
+  [k in ResultType]?: Selector<StateWithHistory<StateBase>, Result>
+} = RESULT_TYPES.reduce((selectors, resultType) => {
+  selectors[resultType] = (state: State) => state.present.result[resultType];
+  return selectors;
+}, {});
 
 export const selectMainSpec = createSelector(
   selectIsQuerySpecific,
   selectData,
   selectFilters,
-  selectMainResult,
+  selectResult.main,
   (
     isQuerySpecific: boolean,
     data: Data,
@@ -40,7 +46,6 @@ export const selectMainSpec = createSelector(
     };
   }
 );
-
 export const selectPlotList: {
   [k in ResultType]?: Selector<StateWithHistory<StateBase>, PlotObject[]>
 } = RESULT_TYPES.reduce((selectors, resultType) => {
