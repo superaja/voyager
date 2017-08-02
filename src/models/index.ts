@@ -18,19 +18,28 @@ export * from './config';
 /**
  * Application state.
  */
-export interface StateBase {
+export interface PersistentState {
   bookmark: Bookmark;
+  shelfPreview: ShelfPreview;
+
+}
+
+export interface UndoableState {
   config: VoyagerConfig;
   dataset: Dataset;
   shelf: Shelf;
-  shelfPreview: ShelfPreview;
   result: ResultIndex;
 }
+
+
 
 /**
  * Application state (wrapped with redux-undo's StateWithHistory interface).
  */
-export type State = StateWithHistory<StateBase>;
+export interface State {
+  persistent: PersistentState;
+  undoable: StateWithHistory<UndoableState>;
+};
 
 export const DEFAULT_STATE: StateBase = {
   bookmark: DEFAULT_BOOKMARK,
@@ -47,7 +56,7 @@ export const DEFAULT_STATE_WITH_HISTORY: State = {
   future: [],
   _latestUnfiltered: [],
   group: []
-};
+}; ; ;
 
 export interface SerializableState {
   bookmark: Bookmark;
